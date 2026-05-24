@@ -249,6 +249,22 @@ export const entrepreneurs: Entrepreneur[] = [
     lastInteractionAt: '2026-05-04',
     tags: ['sazonalidade alta'],
   },
+  {
+    id: 'u-016',
+    fullName: 'Bea Lacerda',
+    age: 30,
+    region: 'Zona Sul',
+    neighborhood: 'Grajaú',
+    businessType: 'tecnologia',
+    incomeStability: 74,
+    paymentRegularity: 86,
+    communityEngagement: 78,
+    seasonality: 'media',
+    monthlyRevenue: 3600,
+    formalizationStage: 'mei_em_preparo',
+    lastInteractionAt: '2026-05-24',
+    tags: ['social media', 'atendimento digital'],
+  },
 ]
 
 export const businesses: Business[] = entrepreneurs.map((person, index) => ({
@@ -268,9 +284,9 @@ export const collectives: Collective[] = [
     name: 'Fundo Vila Esperanca',
     region: 'Sao Paulo periferias',
     monthlyContribution: 50,
-    targetSize: 15,
+    targetSize: 16,
     memberIds: entrepreneurs.map((person) => person.id),
-    fundBalance: 6120,
+    fundBalance: 6270,
     status: 'ativo',
   },
 ]

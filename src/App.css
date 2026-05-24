@@ -416,6 +416,10 @@ button:disabled {
   width: min(1320px, 100%);
 }
 
+.app-shell--admin .view-stack {
+  width: 100%;
+}
+
 .section-heading {
   display: flex;
   align-items: flex-start;
@@ -494,7 +498,7 @@ h3 {
 }
 
 .admin-stat-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
 }
 
 .stat-card {
@@ -590,6 +594,21 @@ h3 {
   min-width: 1120px;
 }
 
+.entrepreneur-table-header,
+.entrepreneur-table-row {
+  grid-template-columns:
+    minmax(170px, 1.2fr)
+    minmax(120px, 0.8fr)
+    minmax(72px, 0.5fr)
+    minmax(170px, 1fr)
+    minmax(210px, 1.2fr)
+    minmax(170px, 1fr)
+    minmax(110px, 0.75fr)
+    minmax(96px, 0.65fr)
+    minmax(74px, 0.5fr);
+  min-width: 1290px;
+}
+
 .cash-header {
   color: var(--muted);
   font-size: 13px;
@@ -608,6 +627,22 @@ h3 {
 
 .table-actions button {
   min-height: 34px;
+}
+
+.contribution-status:disabled {
+  opacity: 0.86;
+}
+
+.contribution-status--closed:disabled {
+  color: #4f4f4f;
+  border-color: #d0d5dd;
+  background: #e5e7eb;
+}
+
+.contribution-status--upcoming:disabled {
+  color: #8a4b00;
+  border-color: #f1b05b;
+  background: #fff0d6;
 }
 
 .icon-button {
@@ -689,11 +724,27 @@ h3 {
 .chart-panel {
   display: grid;
   gap: 10px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .timeline-chart {
+  display: block;
   width: 100%;
-  min-height: 240px;
+  max-width: 100%;
+  height: auto;
+  min-height: 220px;
+  max-height: 240px;
+}
+
+.chart-panel--compact {
+  gap: 8px;
+}
+
+.chart-panel--compact .timeline-chart {
+  min-height: 0;
+  height: clamp(132px, 20vw, 170px);
+  max-height: 170px;
 }
 
 .timeline-chart line {
@@ -903,6 +954,10 @@ h3 {
   background: #fffaf1;
 }
 
+.chat-message span {
+  white-space: pre-line;
+}
+
 .chat-message.mine {
   justify-self: end;
   color: #fffaf1;
@@ -963,8 +1018,72 @@ h3 {
   gap: 8px;
 }
 
+.decision-locked {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border-radius: 999px;
+  padding: 0 10px;
+  color: var(--muted);
+  background: rgba(117, 117, 117, 0.12);
+  font-weight: 850;
+}
+
 .wide-panel {
   grid-column: 1 / -1;
+}
+
+.segment-ranking-panel {
+  overflow: hidden;
+}
+
+.segment-ranking-list {
+  display: grid;
+  gap: 12px;
+}
+
+.segment-ranking-row {
+  display: grid;
+  grid-template-columns: 34px minmax(180px, 1fr) minmax(160px, 1.25fr) minmax(150px, auto);
+  gap: 12px;
+  align-items: center;
+  color: var(--ink);
+}
+
+.segment-ranking-row strong {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: #fffaf1;
+  background: var(--brand-green);
+  font-size: 13px;
+}
+
+.segment-ranking-row span {
+  font-weight: 850;
+}
+
+.segment-ranking-row small {
+  color: var(--muted);
+  font-weight: 800;
+  text-align: right;
+}
+
+.segment-bar {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(47, 107, 79, 0.12);
+}
+
+.segment-bar i {
+  display: block;
+  height: 100%;
+  min-width: 6px;
+  border-radius: inherit;
+  background: var(--brand-wine);
 }
 
 .risk-user-list {
@@ -1079,8 +1198,109 @@ h3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .app-shell--admin .sidebar {
+    padding: 16px;
+  }
+
+  .app-shell--admin .sidebar nav {
+    grid-template-columns: repeat(auto-fit, minmax(154px, 1fr));
+  }
+
+  .app-shell--admin .admin-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .profile-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1500px) {
+  .app-shell--admin .cash-table {
+    overflow: visible;
+  }
+
+  .app-shell--admin .cash-table:has(.admin-loan-row),
+  .app-shell--admin .cash-table:has(.entrepreneur-table-row) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+    gap: 12px;
+  }
+
+  .app-shell--admin .admin-loan-header,
+  .app-shell--admin .entrepreneur-table-header {
+    display: none;
+  }
+
+  .app-shell--admin .admin-loan-row,
+  .app-shell--admin .entrepreneur-table-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-width: 0;
+    gap: 10px;
+    margin-bottom: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    background: #fffaf1;
+  }
+
+  .app-shell--admin .admin-loan-row:last-child,
+  .app-shell--admin .entrepreneur-table-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .app-shell--admin .admin-loan-row > *,
+  .app-shell--admin .entrepreneur-table-row > * {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+
+  .app-shell--admin .admin-loan-row > *::before,
+  .app-shell--admin .entrepreneur-table-row > *::before {
+    content: attr(data-label);
+    flex: 0 0 112px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .app-shell--admin .admin-loan-row > strong,
+  .app-shell--admin .entrepreneur-table-row > strong {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    text-align: right;
+  }
+
+  .app-shell--admin .admin-loan-row .status-dot,
+  .app-shell--admin .entrepreneur-table-row .status-dot,
+  .app-shell--admin .admin-loan-row .decision-line,
+  .app-shell--admin .entrepreneur-table-row .table-actions {
+    justify-content: space-between;
+  }
+
+  .app-shell--admin .admin-loan-row .decision-line button {
+    min-width: 92px;
+  }
+
+  .risk-user-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .risk-user-row .status-dot {
+    justify-self: start;
   }
 }
 
@@ -1123,7 +1343,35 @@ h3 {
 
   .login-card,
   .panel {
-    padding: 18px;
+    padding: 16px;
+  }
+
+  .app-shell--admin .content {
+    padding: 16px;
+  }
+
+  .app-shell--admin .admin-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell--admin .stat-card {
+    min-height: 88px;
+    padding: 14px;
+  }
+
+  .app-shell--admin .chart-panel--compact .timeline-chart {
+    height: 128px;
+    max-height: 128px;
+  }
+
+  .app-shell--admin .sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-shell--admin .sidebar button {
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 12px;
   }
 
   .profile-form,
@@ -1132,12 +1380,29 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .segment-ranking-row {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .segment-ranking-row small,
+  .segment-bar {
+    grid-column: 2;
+  }
+
+  .segment-ranking-row small {
+    text-align: left;
+  }
+
   .photo-field {
     grid-row: auto;
   }
 
   .sidebar nav {
     grid-template-columns: 1fr;
+  }
+
+  .app-shell--admin .sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   h1 {
@@ -1150,5 +1415,29 @@ h3 {
 
   .password-rules {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-shell--admin .sidebar nav {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell--admin .admin-loan-row > *,
+  .app-shell--admin .entrepreneur-table-row > * {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .app-shell--admin .admin-loan-row > *::before,
+  .app-shell--admin .entrepreneur-table-row > *::before {
+    flex-basis: auto;
+  }
+
+  .app-shell--admin .admin-loan-row .decision-line {
+    justify-content: flex-start;
   }
 }

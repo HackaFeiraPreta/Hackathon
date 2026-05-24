@@ -16,18 +16,19 @@ import {
   Send,
   ShieldCheck,
   Store,
+  Trash2,
   UserRound,
   Video,
   Users,
   WalletCards,
 } from 'lucide-react'
 import './App.css'
-import { entrepreneurs, loans } from './data/mockData'
+import { contributions as mockContributions, entrepreneurs, loans as mockLoans } from './data/mockData'
 import { currency } from './domain/utils'
 
 type Role = 'user' | 'admin'
 type UserView = 'caixa' | 'trilhas' | 'comunidade' | 'alertas'
-type AdminView = 'caixa' | 'trilhas' | 'alertas' | 'emprestimos'
+type AdminView = 'caixa' | 'trilhas' | 'alertas' | 'emprestimos' | 'empreendedoras'
 type AppView = UserView | AdminView
 type CashTab = 'resumo' | 'emprestimos' | 'contribuicoes'
 type AuthMode = 'login' | 'register'
@@ -126,54 +127,84 @@ const adminNavigation = [
   { id: 'trilhas', label: 'Trilhas', icon: GraduationCap },
   { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
   { id: 'emprestimos', label: 'Empréstimos', icon: HandCoins },
+  { id: 'empreendedoras', label: 'Empreendedoras', icon: Users },
 ] satisfies Array<{ id: AdminView; label: string; icon: typeof WalletCards }>
 
-const initialRegisteredUsers: RegisteredUser[] = [
-  { fullName: 'Aline Rocha', password: 'Senha1' },
-  { fullName: 'Bruna Conceicao', password: 'Senha1' },
-]
+const seedCpfs = ['11122233344', '55566677788']
+const seedPlans: Array<Profile['plan']> = [100, 200, 300, 200, 100]
+const businessTypeSegmentLabels: Record<string, string> = {
+  beleza: 'Beleza e Estética',
+  alimentacao: 'Alimentação e Bebidas',
+  costura: 'Moda, Vestuário e Costura',
+  confeitaria: 'Alimentação e Bebidas',
+  artesanato: 'Artesanato e Produtos Manuais',
+  delivery: 'Alimentação e Bebidas',
+  cuidados: 'Saúde, Bem-estar e Cuidados Pessoais',
+  educacao: 'Educação, Reforço Escolar e Cursos',
+  limpeza: 'Serviços Domésticos e Limpeza',
+  tecnologia: 'Tecnologia, Marketing e Serviços Digitais',
+  moda: 'Moda, Vestuário e Costura',
+  mercearia: 'Comércio e Vendas (Loja Física ou Online)',
+  agroecologia: 'Comércio e Vendas (Loja Física ou Online)',
+}
 
-const initialProfiles: Profile[] = [
-  {
+function getSeedCpf(index: number) {
+  return seedCpfs[index] ?? String(90000000000 + index + 1)
+}
+
+const initialProfiles: Profile[] = entrepreneurs.map((person, index) => {
+  const segment = businessTypeSegmentLabels[person.businessType] ?? 'Outro'
+  return {
     photo: '',
-    fullName: 'Aline Rocha',
-    cpf: '11122233344',
-    age: '34',
-    education: 'Ensino médio completo',
-    segment: 'Beleza e Estética',
-    cep: '05850000',
-    street: 'Estrada de Itapecerica',
-    number: '120',
-    neighborhood: 'Capao Redondo',
+    fullName: person.fullName,
+    cpf: getSeedCpf(index),
+    age: String(person.age),
+    education: index % 4 === 0 ? 'Ensino médio incompleto' : 'Ensino médio completo',
+    segment,
+    cep: person.fullName === 'Bea Lacerda' ? '04852000' : String(5800000 + index * 137).padStart(8, '0'),
+    street: person.fullName === 'Bea Lacerda' ? 'Rua das Empreendedoras' : `Rua ${person.neighborhood}`,
+    number: person.fullName === 'Bea Lacerda' ? '204' : String(80 + index * 11),
+    neighborhood: person.neighborhood,
     city: 'Sao Paulo',
     state: 'SP',
-    monthlyIncome: '3400',
-    about: 'Salão de beleza com agenda recorrente no bairro.',
-    plan: 200,
-  },
-  {
-    photo: '',
-    fullName: 'Bruna Conceicao',
-    cpf: '55566677788',
-    age: '41',
-    education: 'Ensino médio completo',
-    segment: 'Alimentação e Bebidas',
-    cep: '08470000',
-    street: 'Avenida dos Metalurgicos',
-    number: '87',
-    neighborhood: 'Cidade Tiradentes',
-    city: 'Sao Paulo',
-    state: 'SP',
-    monthlyIncome: '4100',
-    about: 'Produz marmitas e salgados para venda local.',
-    plan: 300,
-  },
-]
+    monthlyIncome: String(person.monthlyRevenue),
+    about: `Negócio de ${segment.toLowerCase()} com ${person.tags.join(', ')}.`,
+    plan: person.fullName === 'Bea Lacerda' ? 200 : seedPlans[index % seedPlans.length],
+  }
+})
+
+const initialRegisteredUsers: RegisteredUser[] = initialProfiles.map((profile) => ({
+  fullName: profile.fullName,
+  password: 'Senha1',
+}))
+
+const profileByEntrepreneurId = new Map(entrepreneurs.map((person, index) => [person.id, initialProfiles[index]]))
 
 const initialLoanRequests: LoanRequest[] = [
+  ...mockLoans.flatMap((loan) => {
+    const profile = profileByEntrepreneurId.get(loan.borrowerId)
+    if (!profile) return []
+    const interest = loan.principal * 0.03
+    return [
+      {
+        id: loan.id,
+        cpf: profile.cpf,
+        borrowerName: profile.fullName,
+        amount: loan.principal,
+        purpose: loan.purpose,
+        neededAt: loan.issuedAt,
+        interest,
+        totalDue: loan.principal + interest,
+        dueDate: loan.dueDate,
+        status: 'aprovado' as const,
+        requestedAt: loan.issuedAt,
+        approvedBy: 'Adm',
+      },
+    ]
+  }),
   {
-    id: 'sol-001',
-    cpf: '11122233344',
+    id: 'sol-demo-001',
+    cpf: getSeedCpf(0),
     borrowerName: 'Aline Rocha',
     amount: 260,
     purpose: 'Comprar estoque para atendimento de fim de semana.',
@@ -181,11 +212,50 @@ const initialLoanRequests: LoanRequest[] = [
     interest: 7.8,
     totalDue: 267.8,
     dueDate: '2026-08-04',
-    status: 'aprovado',
+    status: 'pendente',
     requestedAt: '2026-05-18',
-    approvedBy: 'Adm',
+  },
+  {
+    id: 'sol-demo-002',
+    cpf: getSeedCpf(2),
+    borrowerName: 'Carla Nascimento',
+    amount: 390,
+    purpose: 'Comprar tecido para encomendas de uniformes.',
+    neededAt: '2026-05-28',
+    interest: 11.7,
+    totalDue: 401.7,
+    dueDate: '2026-07-27',
+    status: 'rejeitado',
+    requestedAt: '2026-05-12',
   },
 ]
+
+function buildInitialContributionPayments() {
+  const payments = mockContributions.reduce<ContributionPayments>((current, contribution) => {
+    const entrepreneurIndex = entrepreneurs.findIndex((person) => person.id === contribution.userId)
+    if (entrepreneurIndex < 0 || contribution.status !== 'paga') return current
+    const cpf = getSeedCpf(entrepreneurIndex)
+    const monthId = contribution.dueDate.slice(0, 7)
+    current[cpf] = {
+      ...(current[cpf] ?? {}),
+      [monthId]: true,
+    }
+    return current
+  }, {})
+
+  entrepreneurs.slice(0, 10).forEach((_, index) => {
+    const cpf = getSeedCpf(index)
+    payments[cpf] = {
+      ...(payments[cpf] ?? {}),
+      '2026-01': true,
+      '2026-02': index !== 6,
+    }
+  })
+
+  return payments
+}
+
+const initialContributionPayments = buildInitialContributionPayments()
 
 const chatSeed: Record<string, ChatMessage[]> = {
   'Bruna Conceicao': [
@@ -202,7 +272,10 @@ const storageKeys = {
   chats: 'iyalode:chats',
   contributions: 'iyalode:contributions',
   adminProfile: 'iyalode:admin-profile',
+  seedVersion: 'iyalode:seed-version',
 }
+
+const mockSeedVersion = 'afrocapital-demo-kpis-v3'
 
 const sebraeTracks = [
   {
@@ -331,6 +404,46 @@ function writeStored<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value))
 }
 
+function hasCurrentSeedVersion() {
+  try {
+    return window.localStorage.getItem(storageKeys.seedVersion) === mockSeedVersion
+  } catch {
+    return true
+  }
+}
+
+function mergeSeededProfiles(storedProfiles: Profile[]) {
+  if (storedProfiles.length === 0 || hasCurrentSeedVersion()) return storedProfiles.length ? storedProfiles : initialProfiles
+  const byCpf = new Map(initialProfiles.map((profile) => [profile.cpf, profile]))
+  storedProfiles.forEach((profile) => byCpf.set(profile.cpf, profile))
+  return Array.from(byCpf.values())
+}
+
+function mergeSeededUsers(storedUsers: RegisteredUser[]) {
+  if (storedUsers.length === 0 || hasCurrentSeedVersion()) return storedUsers.length ? storedUsers : initialRegisteredUsers
+  const byName = new Map(initialRegisteredUsers.map((user) => [user.fullName.toLowerCase(), user]))
+  storedUsers.forEach((user) => byName.set(user.fullName.toLowerCase(), user))
+  return Array.from(byName.values())
+}
+
+function mergeSeededLoanRequests(storedRequests: LoanRequest[]) {
+  if (storedRequests.length === 0 || hasCurrentSeedVersion()) return storedRequests.length ? storedRequests : initialLoanRequests
+  const byId = new Map(initialLoanRequests.map((request) => [request.id, request]))
+  storedRequests.forEach((request) => byId.set(request.id, request))
+  return Array.from(byId.values()).sort((a, b) => b.requestedAt.localeCompare(a.requestedAt))
+}
+
+function mergeContributionPayments(base: ContributionPayments, stored: ContributionPayments) {
+  const merged: ContributionPayments = { ...base }
+  Object.entries(stored).forEach(([cpf, months]) => {
+    merged[cpf] = {
+      ...(merged[cpf] ?? {}),
+      ...months,
+    }
+  })
+  return merged
+}
+
 function LogoBlock({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? 'brand brand--compact' : 'login-brand'}>
@@ -370,9 +483,7 @@ function daysFromNow(days: number) {
 }
 
 function getUserFinance(profile: Profile, loanRequests: LoanRequest[], year: string, contributionPayments: ContributionPayments) {
-  const seed = entrepreneurs.find((person) => person.fullName === profile.fullName) ?? entrepreneurs[0]
   const paidMonths = contributionPayments[profile.cpf] ?? {}
-  const historicLoans = loans.filter((item) => item.borrowerId === seed.id && item.issuedAt.startsWith(year))
   const approvedRequests = loanRequests.filter(
     (item) => item.cpf === profile.cpf && item.status === 'aprovado' && item.requestedAt.startsWith(year),
   )
@@ -383,13 +494,9 @@ function getUserFinance(profile: Profile, loanRequests: LoanRequest[], year: str
     const month = index + 1
     const monthId = `${year}-${String(month).padStart(2, '0')}`
     const contribution = paidMonths[monthId] ? profile.plan : 0
-    const historicLoanValue = historicLoans
-      .filter((item) => new Date(`${item.issuedAt}T00:00:00`).getMonth() + 1 === month)
-      .reduce((sum, item) => sum + item.principal, 0)
-    const requestedLoanValue = approvedRequests
+    const loanValue = approvedRequests
       .filter((item) => new Date(`${item.requestedAt}T00:00:00`).getMonth() + 1 === month)
       .reduce((sum, item) => sum + item.amount, 0)
-    const loanValue = historicLoanValue + requestedLoanValue
     const interest = loanValue * 0.03
 
     contributionAccumulated += contribution
@@ -875,8 +982,10 @@ function ToastStack({ toasts }: { toasts: Toast[] }) {
 
 function TimelineChart({
   rows,
+  compact = false,
 }: {
   rows: Array<{ month: string; contribution: number; loanValue: number }>
+  compact?: boolean
 }) {
   const maxValue = Math.max(1, ...rows.flatMap((row) => [row.contribution, row.loanValue]))
   const points = (key: 'contribution' | 'loanValue') =>
@@ -889,7 +998,7 @@ function TimelineChart({
       .join(' ')
 
   return (
-    <article className="panel chart-panel">
+    <article className={compact ? 'panel chart-panel chart-panel--compact' : 'panel chart-panel'}>
       <div className="panel-title">
         <LineChart size={20} aria-hidden="true" />
         <h2>Linha do tempo anual</h2>
@@ -908,6 +1017,51 @@ function TimelineChart({
       <div className="chart-legend">
         <span><i className="legend-contribution" />Contribuição</span>
         <span><i className="legend-loan" />Empréstimos</span>
+      </div>
+    </article>
+  )
+}
+
+function getLoanSegmentRanking(profiles: Profile[], loanRequests: LoanRequest[]) {
+  const profilesByCpf = new Map(profiles.map((profile) => [profile.cpf, profile]))
+  const ranking = new Map<string, { segment: string; requests: number; amount: number }>()
+
+  loanRequests.forEach((request) => {
+    const segment = profilesByCpf.get(request.cpf)?.segment ?? 'Sem cadastro'
+    const current = ranking.get(segment) ?? { segment, requests: 0, amount: 0 }
+    ranking.set(segment, {
+      ...current,
+      requests: current.requests + 1,
+      amount: current.amount + request.amount,
+    })
+  })
+
+  return Array.from(ranking.values()).sort((a, b) => b.requests - a.requests || b.amount - a.amount || a.segment.localeCompare(b.segment))
+}
+
+function SegmentLoanRankingChart({ profiles, loanRequests }: { profiles: Profile[]; loanRequests: LoanRequest[] }) {
+  const ranking = getLoanSegmentRanking(profiles, loanRequests)
+  const maxRequests = Math.max(1, ...ranking.map((item) => item.requests))
+
+  return (
+    <article className="panel segment-ranking-panel">
+      <div className="panel-title">
+        <HandCoins size={20} aria-hidden="true" />
+        <h2>Segmentos que mais solicitaram empréstimos</h2>
+      </div>
+      <div className="segment-ranking-list">
+        {ranking.map((item, index) => (
+          <div className="segment-ranking-row" key={item.segment}>
+            <strong>{index + 1}</strong>
+            <span>{item.segment}</span>
+            <div className="segment-bar" aria-hidden="true">
+              <i style={{ width: `${(item.requests / maxRequests) * 100}%` }} />
+            </div>
+            <small>
+              {item.requests === 1 ? '1 solicitação' : `${item.requests} solicitações`} · {currency(item.amount)}
+            </small>
+          </div>
+        ))}
       </div>
     </article>
   )
@@ -942,8 +1096,22 @@ function CashFlowView({
   const rows = visibleProfiles.flatMap((item) =>
     getUserFinance(item, loanRequests, year, contributionPayments).map((row) => ({ ...row, person: item.fullName, cpf: item.cpf, plan: item.plan })),
   )
+  const timelineRows = Array.from(
+    rows
+      .reduce((months, row) => {
+        const current = months.get(row.monthId) ?? { month: row.month, monthId: row.monthId, contribution: 0, loanValue: 0 }
+        months.set(row.monthId, {
+          ...current,
+          contribution: current.contribution + row.contribution,
+          loanValue: current.loanValue + row.loanValue,
+        })
+        return months
+      }, new Map<string, { month: string; monthId: string; contribution: number; loanValue: number }>())
+      .values(),
+  ).sort((a, b) => a.monthId.localeCompare(b.monthId))
   const contributionTotal = rows.reduce((sum, row) => sum + row.contribution, 0)
   const loanTotal = rows.reduce((sum, row) => sum + row.loanValue, 0)
+  const cashOnHand = contributionTotal - loanTotal
   const interestTotal = rows.reduce((sum, row) => sum + row.interest, 0)
   const platformFee = contributionTotal * 0.01
   const today = new Date()
@@ -970,10 +1138,13 @@ function CashFlowView({
         <div className="stat-grid admin-stat-grid">
           <StatCard icon={CircleDollarSign} label="Total de contribuição" value={currency(contributionTotal)} detail="cotas pagas" />
           <StatCard icon={HandCoins} label="Total de empréstimos" value={currency(loanTotal)} detail="valores liberados" />
+          <StatCard icon={WalletCards} label="Total no caixa" value={currency(cashOnHand)} detail="contribuições - empréstimos" />
+          <StatCard icon={Users} label="Total de usuárias" value={String(profiles.length)} detail="empreendedoras cadastradas" />
           <StatCard icon={LineChart} label="Total de juros" value={currency(interestTotal)} detail="3% por empréstimo" />
           <StatCard icon={WalletCards} label="Manutenção da plataforma" value={currency(platformFee)} detail="1% das contribuições" />
         </div>
-        <TimelineChart rows={rows} />
+        <TimelineChart rows={timelineRows} compact />
+        <SegmentLoanRankingChart profiles={profiles} loanRequests={loanRequests} />
       </section>
     )
   }
@@ -1014,7 +1185,7 @@ function CashFlowView({
             <StatCard icon={HandCoins} label="Empréstimos" value={currency(loanTotal)} detail="valor total aprovado" />
             <StatCard icon={LineChart} label="Juros" value={currency(interestTotal)} detail="3% no mês do empréstimo" />
           </div>
-          <TimelineChart rows={rows} />
+          <TimelineChart rows={timelineRows} compact />
         </>
       )}
 
@@ -1056,6 +1227,12 @@ function CashFlowView({
               const rowDate = new Date(`${row.monthId}-01T00:00:00`)
               const currentDate = new Date(`${currentMonthId}-01T00:00:00`)
               const status = row.contribution > 0 ? 'Já contribuiu' : rowDate < currentDate ? 'Mês fechado' : rowDate > currentDate ? 'Abrirá em breve' : 'Contribuir'
+              const statusClass =
+                status === 'Mês fechado'
+                  ? 'contribution-status contribution-status--closed'
+                  : status === 'Abrirá em breve'
+                    ? 'contribution-status contribution-status--upcoming'
+                    : 'contribution-status'
               return (
                 <div className="cash-row contribution-table-row" key={`${row.person}-${row.month}`}>
                   <strong>{row.month}</strong>
@@ -1063,6 +1240,7 @@ function CashFlowView({
                   <span>{currency(row.contributionAccumulated)}</span>
                   <span className="table-actions">
                     <button
+                      className={statusClass}
                       type="button"
                       disabled={status !== 'Contribuir'}
                       onClick={() => profile && onContribute(profile, row.monthId)}
@@ -1295,16 +1473,94 @@ function CommunityView({
   )
 }
 
-function buildAiAnswer(profile: Profile | undefined, message: string, suggestedMax: number) {
+function normalizeSearchText(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
+function getCourseRecommendations(message: string, role: Role, profile?: Profile) {
+  const tracks = role === 'admin' ? managementTracks : sebraeTracks
+  const normalizedMessage = normalizeSearchText(message)
+  const stopWords = new Set([
+    'sobre',
+    'curso',
+    'cursos',
+    'quero',
+    'preciso',
+    'indica',
+    'indique',
+    'para',
+    'com',
+    'uma',
+    'das',
+    'dos',
+    'tem',
+    'tenho',
+    'quais',
+    'voces',
+    'voce',
+  ])
+  const tokens = normalizedMessage
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 2 && !stopWords.has(token))
+
+  const profileHints = profile ? normalizeSearchText(`${profile.segment} ${profile.about}`) : ''
+  const hasQueryTokens = tokens.length > 0
+  const ranked = tracks
+    .map((track) => {
+      const haystack = normalizeSearchText(`${track.level} ${track.title} ${track.summary}`)
+      const tokenScore = tokens.reduce((score, token) => score + (haystack.includes(token) ? 2 : 0), 0)
+      const profileScore =
+        profileHints.includes('aliment') && haystack.includes('vendas')
+          ? 1
+          : profileHints.includes('beleza') && haystack.includes('cliente')
+            ? 1
+            : profileHints.includes('moda') && haystack.includes('preco')
+              ? 1
+              : 0
+
+      return { track, score: tokenScore + (hasQueryTokens ? 0 : profileScore) }
+    })
+    .sort((a, b) => b.score - a.score)
+
+  const matches = ranked.filter((item) => item.score > 0).map((item) => item.track)
+  const fallback = tracks.filter((track) => !matches.some((match) => match.id === track.id))
+  return [...matches, ...fallback].slice(0, 3)
+}
+
+function formatCourseAnswer(message: string, role: Role, profile?: Profile) {
+  const recommendations = getCourseRecommendations(message, role, profile)
+  const intro =
+    role === 'admin'
+      ? 'Olhei as trilhas de gestão que temos cadastradas com links do Sebrae. Recomendo começar por:'
+      : 'Olhei os cursos e trilhas Sebrae cadastrados na plataforma. Para essa pergunta, recomendo:'
+
+  return `${intro}\n${recommendations
+    .map((course, index) => `${index + 1}. ${course.title} (${course.level}) - ${course.summary} Link: ${course.sebraeUrl}`)
+    .join('\n')}`
+}
+
+function buildAiAnswer(profile: Profile | undefined, message: string, suggestedMax: number, role: Role) {
   const text = message.toLowerCase()
+  const normalizedText = normalizeSearchText(message)
+  const asksForCourses =
+    normalizedText.includes('curso') ||
+    normalizedText.includes('sebrae') ||
+    normalizedText.includes('aula') ||
+    normalizedText.includes('trilha') ||
+    normalizedText.includes('aprender')
+
+  if (asksForCourses) {
+    return formatCourseAnswer(message, role, profile)
+  }
+
   if (!profile) {
     return 'Na visão Adm, priorize solicitações pendentes, pessoas sem contribuição no mês atual e empréstimos próximos do prazo de 60 dias.'
   }
   if (text.includes('empr') || text.includes('crédito') || text.includes('credito')) {
     return `Pelo seu perfil e contribuição registrada, eu recomendaria um teto prudente de ${currency(suggestedMax)} neste mês. Antes de solicitar, confirme se o valor cabe no caixa dos próximos 60 dias.`
-  }
-  if (text.includes('trilha') || text.includes('aprender')) {
-    return `Para o segmento ${profile.segment}, recomendo começar por controle de caixa, precificação e reserva para reposição de estoque. Essas trilhas reduzem risco antes de tomar crédito.`
   }
   return `Insight do seu perfil: sua cota mensal é ${currency(profile.plan)} e seu rendimento informado é ${currency(Number(profile.monthlyIncome.replace(',', '.')) || 0)}. Mantenha a contribuição em dia e solicite crédito apenas quando houver retorno claro para o negócio.`
 }
@@ -1386,7 +1642,7 @@ function AlertsView({
             onSubmit={(event) => {
               event.preventDefault()
               if (!aiInput.trim()) return
-              const answer = buildAiAnswer(profile, aiInput, suggestedMax)
+              const answer = buildAiAnswer(profile, aiInput, suggestedMax, role)
               setAiMessages((current) => [...current, { from: 'Você', text: aiInput }, { from: 'IA Iyalode', text: answer }])
               setAiInput('')
             }}
@@ -1433,6 +1689,92 @@ function AlertsView({
   )
 }
 
+function AdminEntrepreneursView({
+  profiles,
+  onDeleteProfile,
+}: {
+  profiles: Profile[]
+  onDeleteProfile: (profile: Profile) => void
+}) {
+  const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null)
+
+  return (
+    <section className="view-stack">
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">Base de usuárias</span>
+          <h1 className="page-title">Empreendedoras</h1>
+        </div>
+        <div className="status-chip">
+          <Users size={16} aria-hidden="true" />
+          {profiles.length} cadastradas
+        </div>
+      </div>
+      <article className="panel">
+        <div className="cash-table">
+          <div className="cash-header entrepreneur-table-header">
+            <span>Nome</span>
+            <span>CPF</span>
+            <span>Idade</span>
+            <span>Escolaridade</span>
+            <span>Segmento</span>
+            <span>Território</span>
+            <span>Renda</span>
+            <span>Plano</span>
+            <span>Ação</span>
+          </div>
+          {profiles.map((person) => (
+            <div className="cash-row entrepreneur-table-row" key={person.cpf}>
+              <strong data-label="Nome">{person.fullName}</strong>
+              <span data-label="CPF">{person.cpf}</span>
+              <span data-label="Idade">{person.age || '-'}</span>
+              <span data-label="Escolaridade">{person.education || '-'}</span>
+              <span data-label="Segmento">{person.segment || '-'}</span>
+              <span data-label="Território">{person.neighborhood ? `${person.neighborhood}, ${person.city || 'Sao Paulo'}` : person.city || '-'}</span>
+              <span data-label="Renda">{currency(Number(person.monthlyIncome.replace(',', '.')) || 0)}</span>
+              <span data-label="Plano">{currency(person.plan)}</span>
+              <span className="table-actions" data-label="Ação">
+                <button
+                  className="icon-button danger"
+                  type="button"
+                  aria-label={`Excluir ${person.fullName}`}
+                  title={`Excluir ${person.fullName}`}
+                  onClick={() => setDeleteTarget(person)}
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      {deleteTarget && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Confirmar exclusão">
+          <article className="modal">
+            <h2>Excluir empreendedora?</h2>
+            <p>Tem certeza que deseja remover {deleteTarget.fullName} do sistema?</p>
+            <div className="decision-line">
+              <button
+                type="button"
+                onClick={() => {
+                  onDeleteProfile(deleteTarget)
+                  setDeleteTarget(null)
+                }}
+              >
+                Confirmar
+              </button>
+              <button className="ghost-button" type="button" onClick={() => setDeleteTarget(null)}>
+                Cancelar
+              </button>
+            </div>
+          </article>
+        </div>
+      )}
+    </section>
+  )
+}
+
 function AdminLoansView({
   loanRequests,
   onDecision,
@@ -1462,20 +1804,28 @@ function AdminLoansView({
           </div>
           {loanRequests.map((request) => (
             <div className="cash-row admin-loan-row" key={request.id}>
-              <strong>{request.borrowerName}</strong>
-              <span>{new Intl.DateTimeFormat('pt-BR').format(new Date(`${request.requestedAt}T00:00:00`))}</span>
-              <span>{currency(request.amount)}</span>
-              <span>{currency(request.interest)}</span>
-              <span>{new Intl.DateTimeFormat('pt-BR').format(new Date(`${request.dueDate}T00:00:00`))}</span>
-              <span>{request.purpose}</span>
-              <span className={`status-dot status-dot--${request.status}`}>{request.status}</span>
-              <span className="decision-line">
-                <button type="button" disabled={request.status === 'aprovado'} onClick={() => onDecision(request.id, 'aprovado')}>
-                  Aprovar
-                </button>
-                <button className="ghost-button" type="button" disabled={request.status === 'rejeitado'} onClick={() => onDecision(request.id, 'rejeitado')}>
-                  Rejeitar
-                </button>
+              <strong data-label="Solicitante">{request.borrowerName}</strong>
+              <span data-label="Data">{new Intl.DateTimeFormat('pt-BR').format(new Date(`${request.requestedAt}T00:00:00`))}</span>
+              <span data-label="Valor">{currency(request.amount)}</span>
+              <span data-label="Juros">{currency(request.interest)}</span>
+              <span data-label="Prazo">{new Intl.DateTimeFormat('pt-BR').format(new Date(`${request.dueDate}T00:00:00`))}</span>
+              <span data-label="Motivo">{request.purpose}</span>
+              <span className={`status-dot status-dot--${request.status}`} data-label="Status">
+                {request.status}
+              </span>
+              <span className="decision-line" data-label="Decisão Adm">
+                {request.status === 'pendente' ? (
+                  <>
+                    <button type="button" onClick={() => onDecision(request.id, 'aprovado')}>
+                      Aprovar
+                    </button>
+                    <button className="ghost-button" type="button" onClick={() => onDecision(request.id, 'rejeitado')}>
+                      Rejeitar
+                    </button>
+                  </>
+                ) : (
+                  <small className="decision-locked">Decisão registrada</small>
+                )}
               </span>
             </div>
           ))}
@@ -1486,15 +1836,17 @@ function AdminLoansView({
 }
 
 function App() {
-  const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>(() => readStored(storageKeys.users, initialRegisteredUsers))
-  const [profiles, setProfiles] = useState<Profile[]>(() => readStored(storageKeys.profiles, initialProfiles))
+  const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>(() => mergeSeededUsers(readStored(storageKeys.users, [])))
+  const [profiles, setProfiles] = useState<Profile[]>(() => mergeSeededProfiles(readStored(storageKeys.profiles, [])))
   const [session, setSession] = useState<Session | null>(() => readStored<Session | null>(storageKeys.session, null))
   const [pendingProfileName, setPendingProfileName] = useState('')
   const [loginError, setLoginError] = useState('')
   const [activeView, setActiveView] = useState<AppView>('caixa')
-  const [loanRequests, setLoanRequests] = useState<LoanRequest[]>(() => readStored(storageKeys.loans, initialLoanRequests))
+  const [loanRequests, setLoanRequests] = useState<LoanRequest[]>(() => mergeSeededLoanRequests(readStored(storageKeys.loans, [])))
   const [chats, setChats] = useState<Record<string, ChatMessage[]>>(() => readStored(storageKeys.chats, chatSeed))
-  const [contributionPayments, setContributionPayments] = useState<ContributionPayments>(() => readStored(storageKeys.contributions, {}))
+  const [contributionPayments, setContributionPayments] = useState<ContributionPayments>(() =>
+    mergeContributionPayments(initialContributionPayments, readStored(storageKeys.contributions, {})),
+  )
   const [adminProfile, setAdminProfile] = useState<AdminProfile>(() => readStored(storageKeys.adminProfile, { photo: '', password: 'Adm' }))
   const [editingProfile, setEditingProfile] = useState(false)
   const [cashTab, setCashTab] = useState<CashTab>('resumo')
@@ -1527,6 +1879,7 @@ function App() {
     writeStored(storageKeys.chats, chats)
     writeStored(storageKeys.contributions, contributionPayments)
     writeStored(storageKeys.adminProfile, adminProfile)
+    writeStored(storageKeys.seedVersion, mockSeedVersion)
   }, [adminProfile, chats, contributionPayments, loanRequests, profiles, registeredUsers, session])
 
   const currentProfile = useMemo(
@@ -1540,6 +1893,18 @@ function App() {
     window.setTimeout(() => {
       setToasts((current) => current.filter((toast) => toast.id !== id))
     }, 3000)
+  }
+
+  function handleDeleteProfile(person: Profile) {
+    setProfiles((current) => current.filter((item) => item.cpf !== person.cpf))
+    setRegisteredUsers((current) => current.filter((item) => item.fullName !== person.fullName))
+    setLoanRequests((current) => current.filter((item) => item.cpf !== person.cpf))
+    setContributionPayments((current) => {
+      const next = { ...current }
+      delete next[person.cpf]
+      return next
+    })
+    showToast(`${person.fullName} removida do sistema.`, 'danger')
   }
 
   function handleUserLogin(name: string, password: string) {
@@ -1641,7 +2006,7 @@ function App() {
   const navigation = session.role === 'admin' ? adminNavigation : userNavigation
 
   return (
-    <div className="app-shell">
+    <div className={session.role === 'admin' ? 'app-shell app-shell--admin' : 'app-shell'}>
       <Header
         role={session.role}
         profile={currentProfile}
@@ -1717,11 +2082,7 @@ function App() {
                 }))
                 showToast('Contribuição registrada com sucesso.')
               }}
-              onDeleteProfile={(person) => {
-                setProfiles((current) => current.filter((item) => item.cpf !== person.cpf))
-                setRegisteredUsers((current) => current.filter((item) => item.fullName !== person.fullName))
-                setLoanRequests((current) => current.filter((item) => item.cpf !== person.cpf))
-              }}
+              onDeleteProfile={handleDeleteProfile}
             />
           )}
           {activeView === 'trilhas' && <LearningView role={session.role} />}
@@ -1752,11 +2113,18 @@ function App() {
               loanRequests={loanRequests}
               onDecision={(id, status) => {
                 setLoanRequests((current) =>
-                  current.map((request) => (request.id === id ? { ...request, status, approvedBy: status === 'aprovado' ? 'Adm' : undefined } : request)),
+                  current.map((request) =>
+                    request.id === id && request.status === 'pendente'
+                      ? { ...request, status, approvedBy: status === 'aprovado' ? 'Adm' : undefined }
+                      : request,
+                  ),
                 )
                 showToast(status === 'aprovado' ? 'Empréstimo aprovado com sucesso.' : 'Empréstimo rejeitado com sucesso.', status === 'aprovado' ? 'success' : 'danger')
               }}
             />
+          )}
+          {activeView === 'empreendedoras' && session.role === 'admin' && (
+            <AdminEntrepreneursView profiles={profiles} onDeleteProfile={handleDeleteProfile} />
           )}
         </main>
       </div>
