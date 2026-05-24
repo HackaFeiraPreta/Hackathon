@@ -1,105 +1,92 @@
-# Iyalode
+# AfroCapital Coletivo
 
-Projeto desenvolvido para o hackathon da Feira Preta.
+Aplicação web demonstrativa criada para o Hackathon Feira Preta.
 
-O **Iyalode** é uma plataforma web demonstrativa para crédito comunitário voltado a microempreendedoras negras. A proposta parte de uma lógica simples: a garantia não é o colateral. É a comunidade.
+O **AfroCapital Coletivo** é uma plataforma de crédito comunitário para microempreendedoras negras periféricas. A proposta é organizar contribuições coletivas, empréstimos internos com juros baixos, trilhas de aprendizado e monitoramento de risco sem depender de colateral bancário.
 
-## Sobre
+> A garantia não é o colateral. É a comunidade.
 
-O produto organiza grupos de 10 a 20 microempreendedoras que contribuem mensalmente para um fundo compartilhado. Esse fundo permite empréstimos internos com juros baixos, enquanto a plataforma acompanha risco coletivo, recomenda ações preventivas e oferece uma trilha de aprendizado para formalização e crescimento do negócio.
+## Status do MVP
 
-Esta versão é um MVP mockado para apresentação. Ela ainda não usa banco de dados nem autenticação real, mas a lógica principal foi separada em serviços de domínio para facilitar a evolução para backend REST, PostgreSQL/Supabase e integração futura com IA.
+Esta versão é uma demo 100% mockada para apresentação. Ela roda no navegador, usa `localStorage` para simular persistência e já está preparada para evoluir para backend REST, banco de dados e integrações reais de IA.
+
+## Logins de demonstração
+
+### Admin
+
+```txt
+Usuário: Adm
+Senha: Adm
+```
+
+### Empreendedoras
+
+```txt
+Usuário: Bea Lacerda
+Senha: Senha1
+```
+
+```txt
+Usuário: Aline Rocha
+Senha: Senha1
+```
+
+```txt
+Usuário: Bruna Conceicao
+Senha: Senha1
+```
+
+Outras empreendedoras mockadas também usam a senha `Senha1`.
 
 ## Funcionalidades
 
-- Dashboard do coletivo com saldo, crédito circulando e saúde do grupo.
-- Motor de matching comunitário com score de resiliência.
-- Monitoramento de risco coletivo com alertas preventivos.
-- Fluxo de caixa do fundo compartilhado.
-- Trilha de aprendizado personalizada por perfil de empreendedora.
-- Links para cursos EAD oficiais do Sebrae por tema.
-- Payloads de exemplo para futura API REST.
-- Testes unitários dos principais serviços de negócio.
+### Tela da usuária
 
-## Trilha de aprendizado
+- Resumo financeiro com contribuições, empréstimos aprovados e juros.
+- Gráfico anual compacto e responsivo.
+- Solicitação de empréstimo com cálculo automático de juros de 3%.
+- Aba de contribuições com status por mês.
+- Status `Mês fechado` em cinza e `Abrirá em breve` em laranja, mantendo o estado desabilitado.
+- Trilha de aprendizado com cursos e vídeos vinculados ao Sebrae.
+- Comunidade com chat mockado entre empreendedoras.
+- Alertas com IA simulada que responde olhando os cursos cadastrados na plataforma.
 
-A trilha foi desenhada para usuárias com diferentes níveis de escolaridade, usando linguagem simples, passos curtos e apoio em vídeo/áudio.
+### Tela do ADM
 
-Conteúdos incluídos:
+- Dashboard financeiro com:
+  - total de contribuição;
+  - total de empréstimos;
+  - total no caixa;
+  - total de usuárias;
+  - total de juros;
+  - taxa de manutenção da plataforma.
+- Gráfico de linha do tempo compacto.
+- Ranking de segmentos que mais solicitaram empréstimos.
+- Aba `Empreendedoras` com tabela/lista de cadastradas e ação de exclusão.
+- Aba `Empréstimos` com aprovação ou rejeição.
+- Empréstimos já aprovados ou rejeitados ficam bloqueados para nova decisão.
+- Telas de `Empréstimos` e `Empreendedoras` responsivas, virando cards em telas menores.
+- Alertas administrativos com visão de risco coletivo.
 
-- O que é MEI e quando vale a pena.
-- Como abrir MEI pelo celular.
-- Como separar dinheiro da casa e do negócio.
-- Como colocar preço sem perder dinheiro.
-- Como pagar o DAS do MEI.
-- Quando emitir nota fiscal.
-- Como preparar o negócio para crédito maior.
-- Como apresentar o negócio para clientes ou fornecedores.
+## Dados mockados
 
-Cada aula aponta para uma busca oficial de cursos do Sebrae, como MEI, finanças, preço, nota fiscal, crédito e vendas.
+Os dados principais ficam em:
 
-## Motores implementados
+```txt
+src/data/mockData.ts
+```
 
-### Matching comunitário
+Esse arquivo contém:
 
-O `matchingService` sugere grupos e calcula um score de resiliência de 0 a 100 considerando:
+- empreendedoras;
+- negócios;
+- coletivo;
+- contribuições;
+- empréstimos;
+- pagamentos;
+- eventos de risco.
 
-- diversidade de tipos de negócio;
-- diversidade territorial;
-- estabilidade de renda;
-- regularidade de pagamento;
-- engajamento comunitário;
-- sazonalidade;
-- tendência de atividade financeira.
-
-O resultado indica se a composição deve ser `aprovar`, `revisar` ou `rejeitar`, com explicação dos fatores.
-
-### Monitoramento de risco
-
-O `riskService` calcula um score de risco de 0 a 100 e classifica o alerta como `baixo`, `moderado`, `alto` ou `critico`.
-
-Sinais monitorados:
-
-- atraso em contribuição;
-- queda de atividade financeira;
-- baixa interação;
-- concentração de empréstimos;
-- tendência de inadimplência;
-- risco de colapso do grupo.
-
-As recomendações são preventivas e não punitivas.
-
-### Fluxo de caixa
-
-O `financeService` calcula:
-
-- contribuições pagas;
-- empréstimos liberados;
-- pagamentos recebidos;
-- juros retornados ao fundo;
-- taxa da plataforma sobre juros;
-- saldo mensal;
-- projeção do próximo ciclo.
-
-### Trilha personalizada
-
-O `learningService` monta uma trilha de aprendizado usando:
-
-- estágio de formalização;
-- tipo de negócio;
-- estabilidade de renda;
-- regularidade de pagamento;
-- tendência de atividade do negócio.
-
-## Governança de acesso
-
-| Papel | Acesso esperado |
-| --- | --- |
-| Empreendedora | Seus dados, seus pagamentos, seus empréstimos, trilha pessoal, saldo do coletivo e alertas não sensíveis. |
-| Mentora | Evolução da trilha, necessidades de apoio, estágio do negócio e recomendações de acompanhamento. |
-| Admin | Operação, risco, auditoria, pagamentos, eventos de risco e dados agregados/anonimizados. |
-
-Dados sensíveis como CPF, documentos, endereço completo, score individual cru e detalhes de inadimplência não devem ser expostos para outras integrantes do coletivo.
+A Bea Lacerda já está cadastrada no mock central e recebe contribuições simuladas junto com as demais empreendedoras.
 
 ## Stack
 
@@ -108,9 +95,10 @@ Dados sensíveis como CPF, documentos, endereço completo, score individual cru 
 - Vite
 - Vitest
 - Lucide React
-- Dados mockados em memória
+- CSS puro
+- `localStorage` para persistência mockada
 
-## Como rodar
+## Como rodar localmente
 
 Instale as dependências:
 
@@ -118,7 +106,7 @@ Instale as dependências:
 npm install
 ```
 
-Rode o servidor de desenvolvimento:
+Rode o servidor local:
 
 ```bash
 npm run dev
@@ -139,13 +127,36 @@ npm run lint
 npm run test
 ```
 
-## Estrutura
+## Validação
+
+Antes de publicar, rode:
+
+```bash
+npm run test
+npm run lint
+npm run build
+```
+
+## Deploy na Vercel
+
+Configuração recomendada:
+
+```txt
+Framework Preset: Vite
+Install Command: npm install
+Build Command: npm run build
+Output Directory: dist
+```
+
+Se o projeto for publicado por uma organização, a conta usada no deploy precisa estar dentro do time da Vercel dessa organização e ter acesso ao repositório no GitHub.
+
+## Estrutura principal
 
 ```txt
 src/
   data/
-    learningContent.ts
     mockData.ts
+    learningContent.ts
   domain/
     financeService.ts
     learningService.ts
@@ -158,83 +169,22 @@ src/
   App.css
 ```
 
-## Payloads futuros da API
+## Motores de domínio
 
-### Cadastrar empreendedora
+O projeto também contém serviços de domínio para a evolução do produto:
 
-```http
-POST /empreendedoras
-```
-
-```json
-{
-  "nome": "Aline Rocha",
-  "territorio": "Capao Redondo",
-  "tipoNegocio": "beleza",
-  "rendaMensal": 3400,
-  "formalizacao": "mei_em_preparo"
-}
-```
-
-### Sugerir grupo
-
-```http
-POST /coletivos/sugerir-grupo
-```
-
-```json
-{
-  "tamanhoAlvo": 15,
-  "criterios": [
-    "diversidade_negocios",
-    "regularidade_pagamento",
-    "engajamento_comunitario",
-    "sazonalidade"
-  ]
-}
-```
-
-### Consultar risco do coletivo
-
-```http
-GET /coletivos/c-001/risco
-```
-
-```json
-{
-  "score": 90,
-  "alerta": "critico",
-  "sinais": [
-    "contribuicao_atrasada",
-    "queda_atividade",
-    "baixa_interacao"
-  ]
-}
-```
-
-### Registrar empréstimo
-
-```http
-POST /emprestimos
-```
-
-```json
-{
-  "coletivoId": "c-001",
-  "empreendedoraId": "u-004",
-  "valor": 650,
-  "jurosMes": 0.03,
-  "prazoDias": 60,
-  "finalidade": "Insumos para confeitaria"
-}
-```
+- `matchingService`: sugere grupos e calcula score de resiliência coletiva.
+- `riskService`: monitora sinais de risco individual e coletivo.
+- `scoreService`: calcula fatores de score.
+- `recommendationService`: sugere ações preventivas.
+- `financeService`: calcula fluxo de caixa do coletivo.
+- `learningService`: monta trilhas de aprendizado.
 
 ## Próximos passos
 
 - Criar backend REST.
 - Persistir dados em PostgreSQL ou Supabase.
-- Implementar autenticação e autorização por perfil.
+- Implementar autenticação real por perfil.
 - Criar painel específico para mentoras.
-- Integrar IA/ML para matching, risco e trilha educacional.
-- Criar auditoria de consentimento LGPD.
-- Substituir vídeos mockados por conteúdos próprios ou incorporados oficialmente.
+- Integrar IA/ML real para matching, risco e recomendação educacional.
+- Formalizar consentimento e auditoria LGPD.
