@@ -4,6 +4,8 @@ Aplicação web demonstrativa criada para o Hackathon Feira Preta.
 
 A **Iyalode** é uma plataforma de crédito comunitário para microempreendedoras negras periféricas. A proposta é organizar contribuições coletivas, empréstimos internos com juros baixos, trilhas de aprendizado e monitoramento de risco sem depender de colateral bancário.
 
+https://hackathon-feira-preta.vercel.app/
+
 > A garantia não é o colateral. É a comunidade.
 
 ## Status do MVP
